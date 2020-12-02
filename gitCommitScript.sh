@@ -7,6 +7,15 @@
 # Created Time:2020年12月01日 星期二 14时46分49秒
 #########################################################################
 #!/bin/bash
+
+result=$(git status | grep "git pull")
+
+if test "$result" != ""
+then
+    echo "Need to do \"git pull\""
+    exit 0
+fi
+
 git add .
 read -p "Please input git commit explain:" explain
 if test -z "$explain"
