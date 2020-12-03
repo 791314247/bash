@@ -24,4 +24,5 @@ then
 fi
 git commit -m "$explain"
 git push
+git status
 
