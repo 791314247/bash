@@ -208,12 +208,11 @@ download:
 
 commit:
 	$(Q)git add .
-	$(Q)echo read -p \"Please input git commit explain:\" explain > git.so
-	$(Q)echo if test -z \"\$$explain\"\; then explain=\"Daily development submission\"\; fi >> git.so
-	$(Q)echo echo \$$explain >> git.so
-	$(Q)echo git commit -m \"'$$'explain\" >> git.so
-	$(Q)bash ./git.so
-	$(Q)$(RM) git.so
+	$(Q)status='$(shell git status | grep "git pull")';\
+	if test -n "$$status";then echo "Need to do git pull !";exit 10;fi
+	$(Q)explain='$(shell read -p "Please input git commit explain:" explain;echo "$$explain")';\
+	if test -z "$$explain";then git commit -m "Daily development submission"; \
+	else git commit -m "$$explain";fi
 	$(Q)git push
 	$(Q)git status
 
