@@ -9,7 +9,6 @@
 #  **
 #  ************************************************************************/
 
-#当由用户传入的参数V等于1时，条件为真，输出编译信息，当V不等于1时禁止信息
 ifneq ($(V),1)
 Q := @
 else
@@ -49,7 +48,7 @@ CHIP      := FM33LC02X
 # 4. 参数 -Og 是在 -O1 的基础上，去掉了那些影响调试的优化，所以如果最终是为了调试程序，可以使用这个参数。不过光有这个参数也是不行的，这个参数只是告诉编译器，编译后的代码不要影响调试，但调试信息的生成还是靠 -g 参数的。
 # 5. 参数 -Os 是在 -O2 的基础上，去掉了那些会导致最终可执行程序增大的优化，如果想要更小的可执行程序，可选择这个参数。
 # 6. 参数 -Ofast 是在 -O3 的基础上，添加了一些非常规优化，这些优化是通过打破一些国际标准（比如一些数学函数的实现标准）来实现的，所以一般不推荐使用该参数。
-# 7. 如果想知道上面的优化参数具体做了哪些优化，可以使用 gcc -Q --help=optimizers 命令来查询，比如下面是查询 -O3 参数开启了哪些优化：
+# 7. 如果想知道上面的优化参数具体做了哪些优化，可以使用 gcc -Q --help=optimizers 命令来查询。
 OPT       := -Og
 
 # 是否将debug信息编译进.elf文件，默认打开
@@ -57,26 +56,45 @@ DEBUG     := 1
 
 # 输出文件夹，.hex .bin .elf放在此文件夹下，.o .d文件放在此文件的子目录Obj下(自动创建)
 BUILD     := ./build
+
+# 支持双系统编译，故需选当前系统，0为linux，1为windows
+SYS    := 1
+# 若指定了windows系统，则需确认编译器的路径，若安装时以默认路径安装，则正确
+ifeq ($(SYS), 1)
+GCC_PATH = "/mnt/c/Program Files (x86)/GNU Tools Arm Embedded/9 2019-q4-major/bin"
+JLINK_PATH = "/mnt/c/Program Files (x86)/SEGGER/JLink"
+endif
 ###################################用户修改结束###################################
 
-
-# 以下与系统相关，用于支持JLink下载和仿真
-# linux 执行make download的时候不用带参数,windows下需要带SYS=1,用以支持Jlink
-ifneq ($(SYS), 1)
-JLINKEXE       := JLinkExe
-JLINKGDBSERVER := JLinkGDBServer
-else
-JLINKEXE       := JLink.exe
-JLINKGDBSERVER := JLinkGDBServer.exe
-endif
-
 # 编译器定义
-CC      := arm-none-eabi-gcc
-SZ      := arm-none-eabi-size
-OBJCOPY := arm-none-eabi-objcopy
-GDB     := arm-none-eabi-gdb
+PREFIX = arm-none-eabi-
+ifdef GCC_PATH
+SUFFIX = .exe
+CC      := $(GCC_PATH)/$(PREFIX)gcc$(SUFFIX)
+SZ      := $(GCC_PATH)/$(PREFIX)size$(SUFFIX)
+OBJCOPY := $(GCC_PATH)/$(PREFIX)objcopy$(SUFFIX)
+GDB     := $(GCC_PATH)/$(PREFIX)gdb$(SUFFIX)
 BIN     := $(OBJCOPY) -O binary -S
 HEX     := $(OBJCOPY) -O ihex
+else
+CC      := $(PREFIX)gcc
+SZ      := $(PREFIX)size
+OBJCOPY := $(PREFIX)objcopy
+GDB     := $(PREFIX)gdb
+BIN     := $(OBJCOPY) -O binary -S
+HEX     := $(OBJCOPY) -O ihex
+endif
+
+# Jlink定义，用于支持一键下载和gdb仿真
+ifdef JLINK_PATH
+SUFFIX = .exe
+JLINKEXE       := $(JLINK_PATH)/JLink$(SUFFIX)
+JLINKGDBSERVER := $(JLINK_PATH)/JLinkGDBServer$(SUFFIX)
+else
+JLINKEXE       := JLinkExe
+JLINKGDBSERVER := JLinkGDBServer
+endif
+
 
 #################### CFLAGS Config Start ##########################
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
