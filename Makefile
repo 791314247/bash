@@ -128,7 +128,7 @@ vpath %.S $(dir $(START_FILE_SOURCES))
 .PHONY:all cleanAll clean printf JLinkGDBServer debug download commit
 
 all : $(BUILD)/$(TARGET).elf $(BUILD)/$(TARGET).bin $(BUILD)/$(TARGET).hex
-
+	$(Q)du -h $(BUILD)/$(TARGET).bin
 
 #链接所有的.o生成.elf文件
 $(BUILD)/$(TARGET).elf : $(OBJECTS) | $(LDSCRIPT)
