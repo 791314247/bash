@@ -9,4 +9,4 @@
 #!/bin/bash
 
 dmesg | grep tty
-
+read -p "按回车键退出"

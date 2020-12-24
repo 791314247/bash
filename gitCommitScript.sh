@@ -8,14 +8,17 @@
 #########################################################################
 #!/bin/bash
 
-result=$(git status | grep "git pull")
 
-if test "$result" != ""
-then
-    echo "Need to do \"git pull\""
-    exit 0
-fi
+#result=$(git status | grep "git pull")
 
+#if test "$result" != ""
+#then
+#    echo "Need to do \"git pull\""
+#	read -p "按回车键退出！"
+#    exit 0
+#fi
+
+git pull
 git add .
 read -p "Please input git commit explain:" explain
 if test -z "$explain"
@@ -25,4 +28,5 @@ fi
 git commit -m "$explain"
 git push
 git status
+read -p "按回车键退出！"
 

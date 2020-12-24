@@ -12,7 +12,7 @@
 file_type=".*\.o"
 file_type+="\|.*\.d"
 file_type+="\|.*\.map"
-# file_type+="\|.*\.svn"
+file_type+="\|.*\.svn"
 
 #keil
 file_type+="\|.*\.crf"
@@ -39,5 +39,5 @@ file_type+="\|.*\.lmf"
 
 echo finding...
 find ./ -regex $file_type -print0| xargs -0 -t -L 1 rm -r
-
+read -p "按回车键退出！"
 

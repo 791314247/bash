@@ -20,12 +20,10 @@ endif
 TARGET := main
 
 #链接文件名称和所在路径
-LDSCRIPT := \
-./Drivers/CMSIS/Device/FM/FM33xx/Source/Templates/GCC/fm33lc02x_flash.ld
+LDSCRIPT := ./fm33lc02x_flash.ld
 
 #启动文件名称和所在路径
-START_FILE_SOURCES := \
-./Drivers/CMSIS/Device/FM/FM33xx/Source/Templates/GCC/startup_fm33lc0xx.s
+START_FILE_SOURCES := ./startup_fm33lc0xx.s
 
 #内核选择，FPU, FLOAT-ABI可为空
 CPU       := -mcpu=cortex-m0
@@ -131,7 +129,7 @@ START_FILE_OBJ     = $(addsuffix .o, $(basename $(notdir $(START_FILE_SOURCES)))
 OBJECTS            = $(addprefix $(BUILD)/Obj/, $(START_FILE_OBJ))
 
 #搜索所有的c文件，制作所有的.c文件依赖Obj
-C_SOURCES          = $(shell find ./ -type f -iname "*.c")
+C_SOURCES          = $(subst ./,,$(shell find ./ -type f -iname "*.c"))
 OBJECTS           += $(addprefix $(BUILD)/Obj/, $(notdir $(C_SOURCES:%.c=%.o)))
 #PS:去掉终极目标的原始路径前缀并添加输出文件夹路径前缀(改变了依赖文件的路径前缀，需要重新指定搜索路径)
 
@@ -143,10 +141,10 @@ vpath %.S $(dir $(START_FILE_SOURCES))
 
 
 #指定为伪目标跳过隐含规则搜索，提升makefile的性能，并防止make时携带的参数与实际文件重名的问题
-.PHONY:all cleanAll clean printf JLinkGDBServer debug download commit
+.PHONY:all clean printf JLinkGDBServer debug download commit
 
 all : $(BUILD)/$(TARGET).elf $(BUILD)/$(TARGET).bin $(BUILD)/$(TARGET).hex
-	$(Q)du -h $(BUILD)/$(TARGET).bin
+
 
 #链接所有的.o生成.elf文件
 $(BUILD)/$(TARGET).elf : $(OBJECTS) | $(LDSCRIPT)
@@ -154,15 +152,16 @@ $(BUILD)/$(TARGET).elf : $(OBJECTS) | $(LDSCRIPT)
 	$(Q)echo "make $@:"
 	$(Q)$(SZ) $@
 
+
 #编译启动文件  备用参数：#-x assembler-with-cpp
-$(BUILD)/Obj/$(START_FILE_OBJ) : $(START_FILE_SOURCES) Makefile | $(BUILD)/Obj 
+$(BUILD)/Obj/$(START_FILE_OBJ) : $(START_FILE_SOURCES) Makefile | $(BUILD)/Obj
+	$(Q)echo "buid $(subst ./,,$<)"
 	$(Q) $(CC) -c $(CFLAGS) -x assembler-with-cpp -o $@ $<
-	$(Q)echo "buid $(notdir $<)"
 
 #编译工程
 $(BUILD)/Obj/%.o : %.c Makefile | $(BUILD)/Obj 
+	$(Q)echo "buid $(subst ./,,$<)"
 	$(Q) $(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD)/Obj/$(notdir $(<:.c=.lst)) -o $@ $< 
-	$(Q)echo "buid $(notdir $<)"
 
 $(BUILD)/Obj :
 	$(Q)mkdir -p $@
@@ -170,6 +169,7 @@ $(BUILD)/Obj :
 
 %.bin : $(BUILD)/$(TARGET).elf
 	$(Q) $(BIN) $< $@
+	$(Q)du -h $(BUILD)/$(TARGET).bin
 
 %.hex : $(BUILD)/$(TARGET).elf
 	$(Q) $(HEX) $< $@
@@ -187,13 +187,7 @@ cleanAll: clean
 	$(Q)echo "clean all *.elf *.hex *.bin";
 
 clean:
-	$(Q)$(RM) $(shell find ./ -type f -iname "*.o")
-	$(Q)$(RM) $(shell find ./ -type f -iname "*.d")
-	$(Q)$(RM) $(shell find ./ -type f -iname "*.d.*")
-	$(Q)$(RM) $(shell find ./ -type f -iname "*.map")
-	$(Q)$(RM) $(shell find ./ -type f -iname "*.gdb")
-	$(Q)$(RM) $(shell find ./ -type f -iname "*.lst")
-	$(Q)echo "clean all *.o *.d *.map *.lst";
+	$(RM) -rf $(BUILD)
 
 printf:
 	$(Q)echo $(info $(LDFLAGS))
