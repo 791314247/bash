@@ -141,7 +141,7 @@ vpath %.S $(dir $(START_FILE_SOURCES))
 
 
 #指定为伪目标跳过隐含规则搜索，提升makefile的性能，并防止make时携带的参数与实际文件重名的问题
-.PHONY:all clean printf JLinkGDBServer debug download commit
+.PHONY:all clean printf JLinkGDBServer debug download reset commit
 
 all : $(BUILD)/$(TARGET).elf $(BUILD)/$(TARGET).bin $(BUILD)/$(TARGET).hex
 
@@ -213,6 +213,12 @@ download:
 	$(Q)make
 	$(Q)echo "h" > jlink.jlink
 	$(Q)echo "loadfile" $(BUILD)/$(TARGET).hex >> jlink.jlink
+	$(Q)echo "r" >> jlink.jlink
+	$(Q)echo "qc" >> jlink.jlink
+	$(Q)$(JLINKEXE) -device $(CHIP) -Speed 4000 -IF SWD -CommanderScript jlink.jlink
+	$(Q)$(RM) jlink.jlink
+
+reset:
 	$(Q)echo "r" >> jlink.jlink
 	$(Q)echo "qc" >> jlink.jlink
 	$(Q)$(JLINKEXE) -device $(CHIP) -Speed 4000 -IF SWD -CommanderScript jlink.jlink
