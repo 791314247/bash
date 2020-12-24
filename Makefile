@@ -98,7 +98,7 @@ endif
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 
 #搜索所有的h文件,并输出携带-I的.h文件路径
-C_INCLUDES := $(addprefix -I,$(sort $(dir $(shell find ./ -type f -iname "*.h"))))
+C_INCLUDES := $(addprefix -I,$(subst ./,,$(sort $(dir $(shell find ./ -type f -iname "*.h")))))
 
 #编译参数
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -fdata-sections -ffunction-sections
